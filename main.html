@@ -1,3 +1,8 @@
+<!--
+    Game Snake
+
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -8,7 +13,7 @@
     <title>Snake Game</title>
     <style>
         body {
-            background: #ffbf20;
+            background: #6fdd2f;
             text-align: center;
         }
 
@@ -23,12 +28,12 @@
         h1 strong {
             display: inline-block;
             font-size: 1.4em;
-
+            color: #75aceb;
             margin: 0 0.25em;
         }
 
         canvas {
-            border: 10px solid #f7347a;
+            border: 10px solid #c93cbb;
         }
     </style>
 </head>
@@ -65,7 +70,7 @@
         let velocityY = 0;
 
         let tail = [];
-        let snakeLength = 5;
+        let snakeLength = 1;
 
         // food
         let foodPosX = 0;
@@ -125,13 +130,13 @@
         /* Draw snake, field,... */
         function drawThing() {
             // background
-            rectangle("#ffbf00", 0, 0, canvas.width, canvas.height);
+            rectangle("#c93cbb", 0, 0, canvas.width, canvas.height);
 
             // draw grid
             drawGrid();
 
             // food
-            rectangle("red", foodPosX, foodPosY, tileSize, tileSize);
+            rectangle("#75aceb", foodPosX, foodPosY, tileSize - 1, tileSize - 1);
 
             tail.forEach((snakePart) =>
                 rectangle("#555", snakePart.x, snakePart.y, tileSize, tileSize)
@@ -214,7 +219,7 @@
             for (let i = 0; i < tileCountX; i++) {
                 for (let j = 0; j < tileCountY; j++) {
                     rectangle(
-                        "#fff",
+                        "#6fdd2f",
                         tileSize * i,
                         tileSize * j,
                         tileSize - 1,
