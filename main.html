@@ -12,6 +12,21 @@
             text-align: center;
         }
 
+        h1 {
+            margin-top: 0;
+            font-size: 3em;
+            font-family: 'Avenir Next', Verdana, Geneva, Tahoma, sans-serif;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        h1 strong {
+            display: inline-block;
+            font-size: 1.4em;
+
+            margin: 0 0.25em;
+        }
+
         canvas {
             border: 10px solid #f7347a;
         }
@@ -20,6 +35,7 @@
 
 <body>
     <canvas width="600" height="600"></canvas>
+    <h1>0</h1>
 
     <script>
         // listeners
@@ -27,32 +43,43 @@
 
         // canvas
         const canvas = document.querySelector("canvas");
+        const title = document.querySelector("h1");
         const context = canvas.getContext("2d");
 
+        // GAME or GAME OVER
+        let gameRunning = true;
+
+        // score
+        const fps = 15;
+        const tileSize = 30;
+        const tileCountX = canvas.width / tileSize;
+        const tileCountY = canvas.height / tileSize;   
+        let score = 0;
+
         // player
-        const snakeSize = 50;
-        let snakeSpeed = snakeSize;
+        let snakeSpeed = tileSize;
         let snakePosX = 0;
         let snakePosY = canvas.height/2;
 
         let velocityX = 1;
         let velocityY = 0;
 
+        let tail = [];
+        let snakeLength = 5;
+
         // food
-        let foodPosX = 400;
-        let foodPosY = 100;
+        let foodPosX = 0;
+        let foodPosY = 0;
 
-        // play field
-        const tileCountX = canvas.width / snakeSize;
-        const tileCountY = canvas.height / snakeSize;
-
-        // loop 
+        // loop game
         function gameLoop() {
-            drawThing();
-            moveSnake();
-            
-            setTimeout(gameLoop, 1000 / 15);
+            if (gameRunning) {
+                drawThing();
+                moveSnake();
+                setTimeout(gameLoop, 1000 / fps);
+            }
         }
+        resetFood();
         gameLoop();
 
         /* Move snake */
@@ -61,23 +88,37 @@
             snakePosY += snakeSpeed * velocityY;
 
             // wall collision
-            if (snakePosX > canvas.width -snakeSize) {
+            if (snakePosX > canvas.width -tileSize) {
                 snakePosX = 0;
             }
             if (snakePosX < 0) {
                 snakePosX = canvas.width;
             } 
-            if (snakePosY > canvas.height - snakeSize) {
+            if (snakePosY > canvas.height - tileSize) {
                 snakePosY = 0;
             }
             if (snakePosY < 0) {
                 snakePosY = canvas.height;
             }
 
+            // hit snake body means GAME OVER
+            tail.forEach( snakePart => {
+                if (snakePosX === snakePart.x && snakePosY === snakePart.y) {
+                    gameOver();
+                }
+            })
+
+            // tail
+            tail.push({ x: snakePosX, y: snakePosY});
+            
+            // forget earliest parts of snake tail
+            tail = tail.slice(-1 * snakeLength);
+
             // food colision
             if (snakePosX === foodPosX && snakePosY === foodPosY) {
-                foodPosX = Math.floor(Math.random() * tileCountX) * snakeSize;
-                foodPosY = Math.floor(Math.random() * tileCountY) * snakeSize;                
+                title.textContent = ++score;
+                snakeLength++;
+                resetFood();                
             }
         }
 
@@ -90,15 +131,48 @@
             drawGrid();
 
             // food
-            rectangle("red", foodPosX, foodPosY, snakeSize, snakeSize);
+            rectangle("red", foodPosX, foodPosY, tileSize, tileSize);
+
+            tail.forEach((snakePart) =>
+                rectangle("#555", snakePart.x, snakePart.y, tileSize, tileSize)
+            );
 
             // black snake's head
-            rectangle("black", snakePosX, snakePosY, snakeSize, snakeSize);
+            rectangle("black", snakePosX, snakePosY, tileSize, tileSize);
         }
 
+        // create rectangle
         function rectangle(color, x, y, width, height) {
             context.fillStyle = color;
             context.fillRect(x, y, width, height);
+        }
+
+        // reset food
+        function resetFood() {
+            //The End nowhere to go
+            if (snakeLength === tileCountX * tileCountY) {
+                gameOver();
+            }
+
+            foodPosX = Math.floor(Math.random() * tileCountX) * tileSize;
+            foodPosY = Math.floor(Math.random() * tileCountY) * tileSize;
+
+            // dont spawn food on snake head
+            if (foodPosX === snakePosX && foodPosY === snakePosY) {
+                resetFood();
+            }
+
+            // dont spawn food on snake tail
+            if (tail.some(snakePart => snakePart.x === foodPosX && snakePart.y === foodPosY)) {
+                resetFood();
+            }
+        }
+
+        // GAME OVER
+        // function keyPush restart game in section default
+        function gameOver() {
+            title.innerHTML = `<strong> ${score} </strong> <h2>Game Over</h2>`;
+            gameRunning = false;
         }
 
         /* Keyboard 0, 1, -1*/
@@ -128,6 +202,10 @@
                         velocityY = 1;
                     }
                     break;
+                default:
+                    // restart game
+                    if (! gameRunning) location.reload();
+                    break;
             }
         }
 
@@ -137,10 +215,10 @@
                 for (let j = 0; j < tileCountY; j++) {
                     rectangle(
                         "#fff",
-                        snakeSize * i,
-                        snakeSize * j,
-                        snakeSize - 1,
-                        snakeSize - 1
+                        tileSize * i,
+                        tileSize * j,
+                        tileSize - 1,
+                        tileSize - 1
                     );                
                 }    
             }
